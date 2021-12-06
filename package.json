@@ -1,0 +1,82 @@
+{
+  "name": "@nordicsemiconductor/asset-tracker-cloud-device-simulator-golioth",
+  "version": "0.0.0-development",
+  "description": "Simulates a Cat Tracker for the nRF Asset Tracker for Golioth",
+  "bin": "./simulator.js",
+  "type": "module",
+  "scripts": {
+    "test": "jest --passWithNoTests",
+    "postinstall": "husky install",
+    "prepublishOnly": "pinst --disable",
+    "postpublish": "pinst --enable"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NordicSemiconductor/asset-tracker-cloud-device-simulator-golioth-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NordicSemiconductor/asset-tracker-cloud-device-simulator-golioth-js/issues"
+  },
+  "homepage": "https://github.com/NordicSemiconductor/asset-tracker-cloud-device-simulator-golioth-js#readme",
+  "keywords": [
+    "Cloud",
+    "IoT",
+    "nRF Asset Tracker",
+    "Nordic Semiconductor"
+  ],
+  "author": "Nordic Semiconductor ASA | nordicsemi.no",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "@nordicsemiconductor/asset-tracker-cloud-device-ui-server": "4.2.1",
+    "chalk": "5.0.0",
+    "mqtt": "4.2.8",
+    "node-fetch": "3.1.0"
+  },
+  "devDependencies": {
+    "@nordicsemiconductor/asset-tracker-cloud-code-style": "9.2.28",
+    "@types/jest": "27.0.3",
+    "@types/node": "16.11.11",
+    "@types/uuid": "8.3.3",
+    "jest": "27.4.3",
+    "ts-jest": "27.1.0"
+  },
+  "lint-staged": {
+    "*.{md,json,yaml,yml}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --ext .js,.ts"
+    ]
+  },
+  "engines": {
+    "node": ">=16",
+    "npm": ">=8"
+  },
+  "release": {
+    "branches": [
+      "saga",
+      {
+        "name": "!(saga)",
+        "prerelease": true
+      }
+    ],
+    "remoteTags": true
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "package-lock.json",
+    "dist",
+    "data",
+    "simulator.js",
+    "LICENSE",
+    "README.md"
+  ],
+  "prettier": "@nordicsemiconductor/asset-tracker-cloud-code-style/.prettierrc",
+  "jest": {
+    "preset": "ts-jest",
+    "testRegex": ".+\\.spec\\.ts$"
+  }
+}
