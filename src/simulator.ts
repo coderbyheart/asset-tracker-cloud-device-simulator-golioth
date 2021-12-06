@@ -79,11 +79,6 @@ export const simulator = async (): Promise<void> => {
 		update: Record<string, { v: any; ts: number }[]>,
 	) => {
 		Object.entries(update).forEach(([key, updates]) => {
-			console.log(
-				chalk.magenta('>'),
-				chalk.cyanBright(key),
-				chalk.cyan(JSON.stringify(updates)),
-			)
 			client.publish(
 				deviceTopics.lightDbSteam(`reported/${key}`),
 				updates.map((u) => JSON.stringify(u)).join('\n'),
@@ -126,18 +121,32 @@ export const simulator = async (): Promise<void> => {
 
 	/**
 	 * Simulate the FOTA process
-	 * @see https://docs.microsoft.com/en-us/azure/iot-hub/tutorial-firmware-update#update-the-firmware
+	 * @see https://docs.golioth.io/reference/protocols/mqtt/ota#release-manifest-format
 	 */
-	const simulateFota = ({ fwVersion }: { fwVersion: string }) => {
-		client.publish(
-			deviceTopics.fota.report({ package: 'app' }),
-			JSON.stringify({
+	const simulateFota = ({
+		components,
+	}: {
+		sequenceNumber: number
+		hash: string
+		components: {
+			package: string
+			version: string
+			hash: string
+			size: number
+			uri: string
+			type: string
+		}[]
+	}) => {
+		components.map(({ version, uri }) => {
+			const update = {
 				state: 1, // Downloading
 				reason: 0, // ready state
-				version: fwVersion,
+				version: version,
 				target: 'device-simulator',
-			}),
-		)
+			}
+			console.log(chalk.magenta('>'), uri, chalk.cyan(JSON.stringify(update)))
+			client.publish(uri, JSON.stringify(update))
+		})
 
 		setTimeout(() => {
 			reportCurrentFirmware()
@@ -176,19 +185,21 @@ export const simulator = async (): Promise<void> => {
 	console.log()
 
 	client.on('message', (topic, payload) => {
-		console.log(chalk.magenta('>'), chalk.yellow(topic))
+		console.log(chalk.magenta('<'), chalk.yellow(topic))
 		if (payload.length) {
-			console.log(chalk.magenta('>'), chalk.cyan(payload.toString()))
+			console.log(chalk.magenta('<'), chalk.cyan(payload.toString()))
 		}
 		// Handle desired updates
 		if (topic === deviceTopics.lightDb('desired')) {
 			const desiredUpdate = JSON.parse(payload.toString())
-			if (desiredUpdate.cfg !== undefined) {
+			if (desiredUpdate?.cfg !== undefined) {
 				updateConfig(desiredUpdate.cfg)
 			}
-			if (desiredUpdate.firmware !== undefined) {
-				simulateFota(desiredUpdate.firmware)
-			}
+			return
+		}
+		// Handle FOTA
+		if (topic === deviceTopics.fota.desired()) {
+			simulateFota(JSON.parse(payload.toString()))
 			return
 		}
 
@@ -198,6 +209,15 @@ export const simulator = async (): Promise<void> => {
 	client.on('error', (err) => {
 		console.error(chalk.red(err.message))
 	})
+
+	// Subscribe to interesting topics
+	const subscribe = (topic: string) => {
+		console.log(chalk.magenta('<+'), chalk.yellow(topic))
+	}
+	// Changes to desired state
+	subscribe(deviceTopics.lightDb('desired'))
+	// FOTA
+	subscribe(deviceTopics.fota.desired())
 
 	// Report current config
 	updateLightDbReported({ cfg, ...devRoam })
