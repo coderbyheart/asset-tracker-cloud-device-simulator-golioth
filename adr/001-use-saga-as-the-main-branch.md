@@ -1,4 +1,4 @@
-# ADR 003: Use saga as the name for the main branch
+# ADR 001: Use saga as the name for the main branch
 
 Historically, Git and other software use terms such as `master/slave`,
 `whitelist/blacklist`, which are based on racial concepts. Their continued use

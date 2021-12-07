@@ -1,4 +1,4 @@
-# ADR 006: use of TypeScript
+# ADR 003: use of TypeScript
 
 This project is developed using [TypeScript](https://www.typescriptlang.org/) (a
 typed superset of JavaScript).
