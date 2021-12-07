@@ -213,6 +213,7 @@ export const simulator = async (): Promise<void> => {
 	// Subscribe to interesting topics
 	const subscribe = (topic: string) => {
 		console.log(chalk.magenta('<+'), chalk.yellow(topic))
+		client.subscribe(topic)
 	}
 	// Changes to desired state
 	subscribe(deviceTopics.lightDb('desired'))
