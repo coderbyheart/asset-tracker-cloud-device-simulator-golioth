@@ -5,13 +5,13 @@ export const deviceTopics = {
 	 * Publish empty body to delete data
 	 * @see https://docs.golioth.io/reference/protocols/mqtt/lightdb
 	 */
-	lightDb: (path?: string): string => `.d/${path}`,
+	lightDb: (path?: string[]): string => `.d/${path?.join('/')}`,
 	/**
 	 * Subscribe to get latest data
 	 * Publish to send data
 	 * @see https://docs.golioth.io/reference/protocols/mqtt/lightdb-stream
 	 */
-	lightDbSteam: (path?: string): string => `.s/${path}`,
+	lightDbStream: (path?: string[]): string => `.s/${path?.join('/')}`,
 	/**
 	 * @see https://docs.golioth.io/reference/protocols/mqtt/ota
 	 */

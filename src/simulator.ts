@@ -25,28 +25,27 @@ export const simulator = async (): Promise<void> => {
 
 	const version = '1.0.0'
 
-	const devRoam = {
-		dev: {
-			v: {
-				band: 666,
-				nw: 'LAN',
-				modV: 'device-simulator',
-				brdV: 'device-simulator',
-				iccid: '12345678901234567890',
-			},
-			ts: Date.now(),
+	const dev = {
+		v: {
+			modV: 'device-simulator',
+			brdV: 'device-simulator',
+			iccid: '12345678901234567890',
 		},
-		roam: {
-			v: {
-				rsrp: 70,
-				area: 30401,
-				mccmnc: 24201,
-				cell: cellId === undefined ? 16964098 : parseInt(cellId, 10),
-				ip: '0.0.0.0',
-			},
-			ts: Date.now(),
+		ts: Date.now(),
+	}
+
+	const roam = {
+		v: {
+			band: 666,
+			nw: 'LAN',
+			rsrp: 70,
+			area: 30401,
+			mccmnc: 24201,
+			cell: cellId === undefined ? 16964098 : parseInt(cellId, 10),
+			ip: '0.0.0.0',
 		},
-	} as const
+		ts: Date.now(),
+	}
 
 	let cfg = {
 		...defaultConfig,
@@ -69,20 +68,33 @@ export const simulator = async (): Promise<void> => {
 		}
 	}
 
-	const updateLightDbReported = (update: { [key: string]: any }) => {
-		const topic = deviceTopics.lightDb('reported')
-		console.log(chalk.magenta('>'), topic, chalk.cyan(JSON.stringify(update)))
-		client.publish(topic, JSON.stringify(update))
-	}
+	const updateLightDb =
+		(prefix: string[]) => (update: { [key: string]: any }) => {
+			const topic = deviceTopics.lightDb(prefix)
+			console.log(
+				chalk.magenta('<'),
+				chalk.blue.blueBright(topic),
+				chalk.cyan(JSON.stringify(update)),
+			)
+			client.publish(topic, JSON.stringify(update))
+		}
+	const updateReportedConfig = updateLightDb(['reported', 'cfg'])
+	const updateReportedDeviceInformation = updateLightDb(['reported', 'dev'])
 
-	const updateLightDbReportedStream = (
+	const publishToLightDbStream = (
 		update: Record<string, { v: any; ts: number }[]>,
 	) => {
 		Object.entries(update).forEach(([key, updates]) => {
-			client.publish(
-				deviceTopics.lightDbSteam(`reported/${key}`),
-				updates.map((u) => JSON.stringify(u)).join('\n'),
-			)
+			const topic = deviceTopics.lightDbStream([key])
+			updates.forEach((u) => {
+				const update = JSON.stringify(u)
+				console.log(
+					chalk.magenta('<'),
+					chalk.blue.blueBright(topic),
+					chalk.cyan(update),
+				)
+				client.publish(topic, update)
+			})
 		})
 	}
 
@@ -93,7 +105,9 @@ export const simulator = async (): Promise<void> => {
 		}
 		console.log(chalk.blue('Config:'))
 		console.log(cfg)
-		updateLightDbReported({ cfg, ...devRoam })
+		updateReportedConfig(cfg)
+		updateReportedDeviceInformation(dev)
+		publishToLightDbStream({ roam: [roam] })
 		sendConfigToUi()
 	}
 
@@ -155,12 +169,22 @@ export const simulator = async (): Promise<void> => {
 
 	const port = await uiServer({
 		deviceId: pskIdentity,
-		onUpdate: updateLightDbReported,
+		onUpdate: (update) => {
+			if ('cfg' in update) {
+				updateReportedConfig(update)
+				return
+			}
+			Object.entries(update).forEach(([k, v]) =>
+				publishToLightDbStream({
+					[k]: [v],
+				}),
+			)
+		},
 		onSensorMessage: (message) => {
-			updateLightDbReported(message)
+			publishToLightDbStream(message)
 		},
 		onBatch: (update) => {
-			updateLightDbReportedStream(update)
+			publishToLightDbStream(update)
 		},
 		onWsConnection: (c) => {
 			console.log(chalk.magenta('[ws]'), chalk.cyan('connected'))
@@ -168,9 +192,9 @@ export const simulator = async (): Promise<void> => {
 			sendConfigToUi()
 		},
 		onMessage: {
-			'/pgps/get': messageHandler(deviceTopics.lightDb('pgps/get')),
-			'/agps/get': messageHandler(deviceTopics.lightDb('agps/get')),
-			'/ncellmeas': messageHandler(deviceTopics.lightDb('ncellmeas')),
+			'/pgps/get': messageHandler(deviceTopics.lightDbStream(['pgps', 'get'])),
+			'/agps/get': messageHandler(deviceTopics.lightDbStream(['agps', 'get'])),
+			'/ncellmeas': messageHandler(deviceTopics.lightDbStream(['ncellmeas'])),
 		},
 	})
 
@@ -190,7 +214,7 @@ export const simulator = async (): Promise<void> => {
 			console.log(chalk.magenta('<'), chalk.cyan(payload.toString()))
 		}
 		// Handle desired updates
-		if (topic === deviceTopics.lightDb('desired')) {
+		if (topic === deviceTopics.lightDb(['desired'])) {
 			const desiredUpdate = JSON.parse(payload.toString())
 			if (desiredUpdate?.cfg !== undefined) {
 				updateConfig(desiredUpdate.cfg)
@@ -216,11 +240,13 @@ export const simulator = async (): Promise<void> => {
 		client.subscribe(topic)
 	}
 	// Changes to desired state
-	subscribe(deviceTopics.lightDb('desired'))
+	subscribe(deviceTopics.lightDb(['desired']))
 	// FOTA
 	subscribe(deviceTopics.fota.desired())
 
 	// Report current config
-	updateLightDbReported({ cfg, ...devRoam })
+	updateReportedConfig(cfg)
+	updateReportedDeviceInformation(dev)
+	publishToLightDbStream({ roam: [roam] })
 	reportCurrentFirmware()
 }
