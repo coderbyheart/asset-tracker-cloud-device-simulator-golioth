@@ -86,6 +86,7 @@ export const simulator = async (): Promise<void> => {
 	) => {
 		Object.entries(update).forEach(([key, updates]) => {
 			const topic = deviceTopics.lightDbStream([key])
+			if (!Array.isArray(updates)) updates = [updates]
 			updates.forEach((u) => {
 				const update = JSON.stringify(u)
 				console.log(
