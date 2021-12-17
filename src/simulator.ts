@@ -107,7 +107,7 @@ export const simulator = async (): Promise<void> => {
 		console.log(chalk.blue('Config:'))
 		console.log(cfg)
 		updateReportedConfig(cfg)
-		updateReportedDeviceInformation(dev)
+		publishToLightDbStream({ dev: [dev] })
 		publishToLightDbStream({ roam: [roam] })
 		sendConfigToUi()
 	}
