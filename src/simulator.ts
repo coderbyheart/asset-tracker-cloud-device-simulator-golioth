@@ -38,7 +38,7 @@ export const simulator = async (): Promise<void> => {
 		v: {
 			band: 666,
 			nw: 'LAN',
-			rsrp: 70,
+			rsrp: -70,
 			area: 30401,
 			mccmnc: 24201,
 			cell: cellId === undefined ? 16964098 : parseInt(cellId, 10),
