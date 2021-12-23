@@ -29,13 +29,13 @@
   "dependencies": {
     "@nordicsemiconductor/asset-tracker-cloud-device-ui-server": "5.0.1",
     "chalk": "5.0.0",
-    "mqtt": "4.2.8",
+    "mqtt": "4.3.0",
     "node-fetch": "3.1.0"
   },
   "devDependencies": {
-    "@nordicsemiconductor/asset-tracker-cloud-code-style": "9.2.33",
+    "@nordicsemiconductor/asset-tracker-cloud-code-style": "10.0.0",
     "@types/jest": "27.0.3",
-    "@types/node": "17.0.0",
+    "@types/node": "17.0.4",
     "@types/uuid": "8.3.3",
     "jest": "27.4.5",
     "ts-jest": "27.1.2"

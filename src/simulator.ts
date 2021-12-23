@@ -1,11 +1,11 @@
-import chalk from 'chalk'
 import {
 	uiServer,
 	WebSocketConnection,
 } from '@nordicsemiconductor/asset-tracker-cloud-device-ui-server'
-import { deviceTopics } from './deviceTopics.js'
-import { defaultConfig } from './defaultConfig.js'
+import chalk from 'chalk'
 import { connect } from './connect.js'
+import { defaultConfig } from './defaultConfig.js'
+import { deviceTopics } from './deviceTopics.js'
 
 const cellId = process.env.CELL_ID
 const endpoint = process.env.MQTT_ENDPOINT ?? 'mqtt.golioth.io'
