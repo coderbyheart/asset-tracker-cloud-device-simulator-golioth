@@ -5,4 +5,10 @@ export const defaultConfig = {
 	mvt: 3600, // (movement timeout) In passive mode: Send update at least this often (in seconds)
 	gpst: 60, // GPS timeout (in seconds): timeout for GPS fix
 	acct: 0.1, // Accelerometer threshold: minimal absolute value for and accelerometer reading to be considered movement.
+	/**
+	 * List of modules which should be disabled when sampling data.
+	 *
+	 * Because Golioth LightDB does not support arrays, this is an object
+	 */
+	nod: {} as { gnss?: boolean; ncell?: boolean },
 } as const
