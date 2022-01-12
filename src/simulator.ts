@@ -30,6 +30,7 @@ export const simulator = async (): Promise<void> => {
 			modV: 'device-simulator',
 			brdV: 'device-simulator',
 			iccid: '8931080520035770831',
+			imei: '352656106111232',
 		},
 		ts: Date.now(),
 	}
